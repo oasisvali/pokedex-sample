@@ -10,4 +10,6 @@ export const config = {
     import.meta.env.VITE_POKEMON_CONCURRENCY,
   ),
   requestTimeoutMs: 20_000,
+  cacheKey: 'mavi-pokedex:catalogue',
+  cacheVersion: 1,
 }

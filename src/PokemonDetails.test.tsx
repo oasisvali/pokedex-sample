@@ -90,7 +90,6 @@ it('handles absent and broken media, unknown experience and empty detail collect
     detailsFixture({
       sprites: { front_default: null },
       cries: { latest: null, legacy: null },
-      is_default: false,
       base_experience: null,
       abilities: [],
       stats: [],

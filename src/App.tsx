@@ -1,5 +1,12 @@
 import { useSyncExternalStore } from 'react'
-import { Container, MantineProvider, Stack, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Container,
+  MantineProvider,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 import { PokemonListing } from './components/PokemonListing'
 import { PokedexStartup } from './components/PokedexStartup'
 import { pokedexLoader } from './data/pokedex'
@@ -23,7 +30,19 @@ export default function App() {
             </Text>
           </div>
           {state.status === 'ready' ? (
-            <PokemonListing entries={state.entries} />
+            <>
+              {state.cacheUnavailable && (
+                <Alert
+                  color="yellow"
+                  role="status"
+                  title="Could not save your Pokédex on this device"
+                >
+                  Your Pokédex is ready to use. Data will be downloaded again on
+                  your next visit.
+                </Alert>
+              )}
+              <PokemonListing entries={state.entries} />
+            </>
           ) : (
             <PokedexStartup state={state} onRetry={pokedexLoader.retry} />
           )}

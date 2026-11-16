@@ -5,6 +5,7 @@ import {
   type PokemonListItem,
 } from '../api/pokemon'
 import { config } from '../config'
+import { readPokedexCache, savePokedexCache } from './pokedexCache'
 
 export type PokemonEntry = PokemonListItem & { details: PokemonDetails }
 export type PokedexState =
@@ -16,7 +17,7 @@ export type PokedexState =
       loaded: number
       failed: number
     }
-  | { status: 'ready'; entries: PokemonEntry[] }
+  | { status: 'ready'; entries: PokemonEntry[]; cacheUnavailable: boolean }
 
 export function createPokedexLoader() {
   let state: PokedexState = { status: 'discovering' }
@@ -24,6 +25,8 @@ export function createPokedexLoader() {
   const details = new Map<string, PokemonDetails>()
   const listeners = new Set<() => void>()
   let controller: AbortController | undefined
+  let cacheChecked = false
+  let cacheUnavailable = false
 
   function publish(next: PokedexState) {
     state = next
@@ -34,6 +37,20 @@ export function createPokedexLoader() {
     controller = new AbortController()
     const { signal } = controller
     try {
+      if (!cacheChecked) {
+        const cached = await readPokedexCache()
+        signal.throwIfAborted()
+        cacheChecked = true
+        if (cached.status === 'hit') {
+          publish({
+            status: 'ready',
+            entries: cached.entries,
+            cacheUnavailable: false,
+          })
+          return
+        }
+        cacheUnavailable = cached.status === 'unavailable'
+      }
       if (!catalogue) {
         publish({ status: 'discovering' })
         const list = await getPokemonList(signal)
@@ -87,7 +104,13 @@ export function createPokedexLoader() {
           if (!result) throw new Error('Missing Pokémon details.')
           return { ...item, details: result }
         })
-        publish({ status: 'ready', entries })
+        const saved = await savePokedexCache(entries, signal)
+        if (signal.aborted) return
+        publish({
+          status: 'ready',
+          entries,
+          cacheUnavailable: cacheUnavailable || !saved,
+        })
       }
     } catch {
       if (!signal.aborted) publish({ status: 'catalogue-error' })

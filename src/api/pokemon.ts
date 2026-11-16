@@ -2,16 +2,16 @@ import { z } from 'zod'
 import { config } from '../config'
 import { requestJson } from './request'
 
+export const pokemonListItemSchema = z.object({
+  name: z.string().trim().min(1),
+  url: z.httpUrl(),
+})
+
 const pokemonListSchema = z.object({
   count: z.number().int().nonnegative(),
   next: z.httpUrl().nullable(),
   previous: z.httpUrl().nullable(),
-  results: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      url: z.httpUrl(),
-    }),
-  ),
+  results: z.array(pokemonListItemSchema),
 })
 
 export type PokemonListItem = z.infer<
@@ -21,12 +21,10 @@ let cachedList: PokemonListItem[] | undefined
 
 const namedField = z.object({ name: z.string().trim().min(1) })
 const mediaUrl = z.httpUrl().nullable()
-const pokemonDetailsSchema = z.object({
+export const pokemonDetailsSchema = z.object({
   base_experience: z.number().int().nonnegative().nullable(),
   height: z.number().int().nonnegative(),
   weight: z.number().int().nonnegative(),
-  is_default: z.boolean(),
-  order: z.number().int(),
   sprites: z.object({ front_default: mediaUrl }),
   cries: z.object({ latest: mediaUrl, legacy: mediaUrl }),
   types: z.array(z.object({ slot: z.number().int(), type: namedField })),

@@ -37,6 +37,19 @@ Use an integer from 1 to 100; missing or invalid values fall back to 20. Restart
 the dev server after changing the value. Production builds read it at build time.
 See `.env.example` for the default. `VITE_*` settings are public client data.
 
+## Saved Pokédex
+
+After a successful full download, the app stores the validated catalogue in
+localStorage under `mavi-pokedex:catalogue`, compressed with the browser's native
+gzip support. Later visits reuse a valid cache without API requests or expiry.
+Page selection and filters start fresh on each visit. Images and cries still load
+from their remote URLs.
+
+Invalid or incompatible saved data triggers a fresh download. If storage is full,
+blocked or compression is unavailable, the app remains usable and explains that
+the data could not be saved. To force a new download manually, remove only
+`mavi-pokedex:catalogue` from this site's localStorage, then reload.
+
 ## Commands
 
 | Command             | Purpose                               |

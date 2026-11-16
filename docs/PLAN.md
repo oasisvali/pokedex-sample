@@ -59,7 +59,7 @@ unverified in a browser.
 
 ## Slice 5 — Type filter and name search
 
-Status: Implemented; automated checks passed. Awaiting user review and manual commit.
+Status: Accepted for continuation; committed in e756b13.
 
 - Add a labelled single-type selector, name input and Clear filters button.
 - Derive alphabetical type options from the complete dataset; default to All types.
@@ -76,17 +76,28 @@ Browser access remained unavailable; responsive layout remains unverified.
 
 ## Slice 6 — localStorage persistence
 
-Status: Planned; awaiting slice 5 review, acceptance and manual commit.
+Status: Implemented; automated checks passed. Accepted and committed.
 
 - Persist a complete ordered dataset of names and consumed validated detail fields,
   plus media URLs. Do not store raw responses or media files.
 - Use an application-specific cache key and schema version; validate completeness.
+- Compress the validated dataset with native gzip before storing its base64 payload;
+  the uncompressed ten-response sample projected roughly 9.5 MiB for all entries.
 - Use a valid cache indefinitely with no API requests, expiry or automatic refresh.
 - Missing/corrupt/incomplete/incompatible caches trigger normal startup loading.
   Save only after all details succeed.
 - Catch storage/quota failures, keep the in-memory app usable and show a non-blocking
   message. Do not persist page/filter/search state.
 - Test cache hits with zero API calls, round trips, invalid caches and storage errors.
+
+Verification: `npm run check` passed (47 tests, types, lint, formatting and production
+build). A fresh app module restores the complete cache with zero API calls and
+resets page/filter state. Tests cover corrupt/incompatible/incomplete data,
+storage/quota/compression failures, retry-before-save, cancellation and a synthetic
+1,351-entry compressed round trip. Unused fields are stripped before persistence.
+Cards are memoized to avoid redundant renders during filtering. Diff and whitespace
+checks passed. Browser access remained unavailable; real-browser reload performance
+and the live full-catalogue cache were not exercised.
 
 ## Verification and defaults
 

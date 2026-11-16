@@ -8,8 +8,6 @@ export function detailsFixture(
     base_experience: 62,
     height: 6,
     weight: 85,
-    is_default: true,
-    order: 5,
     sprites: { front_default: 'https://example.com/sprite.png' },
     cries: { latest: 'https://example.com/cry.ogg', legacy: null },
     types: [
