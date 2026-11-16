@@ -1,0 +1,14 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.eol": "\n",
+  "terminal.integrated.env.windows": {
+    "PATH": "${workspaceFolder}\\.tools\\node;${env:PATH}"
+  },
+  "search.exclude": {
+    "**/package-lock.json": true,
+    "**/.tools": true,
+    "**/dist": true
+  }
+}

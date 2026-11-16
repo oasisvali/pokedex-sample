@@ -1,0 +1,9 @@
+body {
+  min-width: 320px;
+  background: var(--mantine-color-gray-0);
+}
+
+:focus-visible {
+  outline: 3px solid var(--mantine-primary-color-filled);
+  outline-offset: 3px;
+}
