@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import { Badge, Group, SimpleGrid, Stack, Text } from '@mantine/core'
 import type { PokemonDetails as Details } from '../api/pokemon'
 import { PokemonSprite } from './PokemonSprite'
 import { PokemonExtraDetails } from './PokemonExtraDetails'
+import { PokemonCry } from './PokemonCry'
 
 function readable(value: string) {
   return value.replaceAll('-', ' ')
@@ -15,14 +15,11 @@ export function PokemonDetails({
   details: Details
   name: string
 }) {
-  const [audioFailed, setAudioFailed] = useState(false)
   const cry = details.cries.latest ?? details.cries.legacy
   const facts = [
     ['Base experience', details.base_experience ?? 'Unknown'],
     ['Height', `${details.height / 10} m`],
     ['Weight', `${details.weight / 10} kg`],
-    ['Default form', details.is_default ? 'Yes' : 'No'],
-    ['Sort order', details.order],
   ]
 
   return (
@@ -58,22 +55,7 @@ export function PokemonDetails({
         <Text size="sm" fw={500}>
           Cry
         </Text>
-        {cry && !audioFailed ? (
-          <audio
-            controls
-            preload="none"
-            src={cry}
-            aria-label={`${name} cry`}
-            style={{ width: '100%', minWidth: 0 }}
-            onError={() => setAudioFailed(true)}
-          >
-            Your browser does not support audio playback.
-          </audio>
-        ) : (
-          <Text size="sm" c="dimmed">
-            Audio unavailable
-          </Text>
-        )}
+        <PokemonCry key={cry} src={cry} name={name} />
       </Stack>
       <PokemonExtraDetails details={details} name={name} />
     </Stack>

@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MantineProvider } from '@mantine/core'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { PokemonListing } from './components/PokemonListing'
 import { theme } from './theme'
 import { detailsFixture } from './test/pokemon'
@@ -41,15 +41,19 @@ it('shows readable data, ordered types, expandable collections and audio control
   expect(card.getByText('0.6 m')).toBeInTheDocument()
   expect(card.getByText('8.5 kg')).toBeInTheDocument()
   expect(card.getByText('62')).toBeInTheDocument()
-  expect(card.getByText('Yes')).toBeInTheDocument()
-  expect(card.getByText('5')).toBeInTheDocument()
+  expect(card.queryByText('Default form')).not.toBeInTheDocument()
+  expect(card.queryByText('Sort order')).not.toBeInTheDocument()
   expect(card.getByLabelText('Bulbasaur types').textContent).toBe('grasspoison')
   const audio = card.getByLabelText('Bulbasaur cry')
-  expect(audio).toHaveAttribute('controls')
+  expect(audio).not.toHaveAttribute('controls')
+  expect(audio).toHaveAttribute('hidden')
   expect(audio).toHaveAttribute('preload', 'none')
   expect(audio).toHaveAttribute('src', 'https://example.com/cry.ogg')
   expect(audio).not.toHaveAttribute('autoplay')
   const user = userEvent.setup()
+  const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
+  await user.click(card.getByRole('button', { name: 'Play Bulbasaur cry' }))
+  expect(play).toHaveBeenCalledTimes(1)
   card.getByRole('button', { name: 'Abilities (1)' }).focus()
   await user.keyboard('{Enter}')
   await waitFor(() =>
@@ -67,7 +71,21 @@ it('shows readable data, ordered types, expandable collections and audio control
   })
 })
 
-it('handles absent and broken media, false values and empty detail collections', async () => {
+it('shows an unavailable message when cry playback fails', async () => {
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(
+    new Error('Unsupported audio'),
+  )
+  renderList([detailsFixture()])
+  await userEvent
+    .setup()
+    .click(screen.getByRole('button', { name: 'Play Bulbasaur cry' }))
+  expect(await screen.findByText('Audio unavailable')).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Play Bulbasaur cry' }),
+  ).not.toBeInTheDocument()
+})
+
+it('handles absent and broken media, unknown experience and empty detail collections', async () => {
   renderList([
     detailsFixture({
       sprites: { front_default: null },
@@ -85,7 +103,6 @@ it('handles absent and broken media, false values and empty detail collections',
   ])
   expect(await screen.findByText('Image unavailable')).toBeInTheDocument()
   expect(screen.getByText('Audio unavailable')).toBeInTheDocument()
-  expect(screen.getByText('No')).toBeInTheDocument()
   expect(screen.getByText('Unknown')).toBeInTheDocument()
   expect(screen.getByText('No types available.')).toBeInTheDocument()
   const image = await screen.findByAltText('Ivysaur')
