@@ -1,6 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
+import type { ComponentType } from 'react'
+import { mockListFetch } from './test/pokemon'
 
 const names = [
   'bulbasaur',
@@ -24,10 +26,14 @@ function listResponse(pokemon = names) {
   })
 }
 
-beforeEach(() => vi.resetModules())
+let App: ComponentType
+
+beforeEach(async () => {
+  vi.resetModules()
+  App = (await import('./App')).default
+})
 
 async function renderApp() {
-  const { default: App } = await import('./App')
   return render(<App />)
 }
 
@@ -39,24 +45,24 @@ it('shows loading, then ten names in API order with the expected request', async
         finish = resolve
       }),
   )
-  vi.stubGlobal('fetch', fetchMock)
+  mockListFetch(fetchMock)
   await renderApp()
   expect(screen.getByRole('status')).toHaveTextContent('Loading Pokémon')
   await act(async () => finish(listResponse()))
   const items = within(
     await screen.findByRole('list', { name: 'Pokémon' }),
   ).getAllByRole('listitem')
-  expect(items.map((item) => item.textContent)).toEqual(
-    names.map((name) => name.charAt(0).toUpperCase() + name.slice(1)),
-  )
+  expect(
+    items.map((item) => within(item).getByRole('heading').textContent),
+  ).toEqual(names.map((name) => name.charAt(0).toUpperCase() + name.slice(1)))
   expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
     'https://pokeapi.co/api/v2/pokemon?limit=10&offset=0',
   )
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('Loading Pokémon…')).not.toBeInTheDocument()
 })
 
 it('shows an empty state', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(listResponse([])))
+  mockListFetch(vi.fn().mockResolvedValue(listResponse([])))
   await renderApp()
   expect(await screen.findByText('No Pokémon found.')).toHaveAttribute(
     'role',
@@ -77,7 +83,7 @@ it.each([
     .fn()
     .mockImplementationOnce(failure)
     .mockResolvedValue(listResponse())
-  vi.stubGlobal('fetch', fetchMock)
+  mockListFetch(fetchMock)
   await renderApp()
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Could not load Pokémon',
@@ -100,7 +106,7 @@ it('aborts on unmount and ignores obsolete responses and cache writes', async ()
         }),
     )
     .mockResolvedValue(listResponse(['ivysaur']))
-  vi.stubGlobal('fetch', fetchMock)
+  mockListFetch(fetchMock)
   const first = await renderApp()
   first.unmount()
   expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true)

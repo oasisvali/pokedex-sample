@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react'
-import {
-  Alert,
-  Button,
-  Card,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core'
+import { Alert, Button, SimpleGrid, Stack, Text } from '@mantine/core'
 import { getPokemonList, type PokemonListItem } from '../api/pokemon'
+import { PokemonCard } from './PokemonCard'
 
 type ListState =
   | { status: 'loading' }
@@ -62,18 +55,14 @@ export function PokemonListing() {
     <SimpleGrid
       component="ul"
       aria-label="Pokémon"
-      cols={{ base: 1, xs: 2, md: 5 }}
+      cols={{ base: 1, sm: 2, lg: 3 }}
+      style={{ listStyle: 'none', alignItems: 'start' }}
       spacing="md"
       m={0}
       p={0}
-      style={{ listStyle: 'none' }}
     >
       {state.pokemon.map((pokemon) => (
-        <Card component="li" key={pokemon.url} withBorder padding="lg">
-          <Title order={2} size="h4" style={{ overflowWrap: 'anywhere' }}>
-            {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
-          </Title>
-        </Card>
+        <PokemonCard key={pokemon.url} name={pokemon.name} />
       ))}
     </SimpleGrid>
   )
