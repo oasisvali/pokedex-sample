@@ -23,22 +23,40 @@ export function detailsFixture(
   }
 }
 
-// Keep list-focused tests independent of the subsequent detail requests.
-export function mockListFetch(listFetch: typeof fetch) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn<typeof fetch>((input, init) =>
-      String(input).includes('?')
-        ? listFetch(input, init)
-        : Promise.resolve(Response.json(detailsFixture())),
-    ),
-  )
-}
-
 export function deferredResponse() {
   let resolve: (response: Response) => void = () => {}
   const promise = new Promise<Response>((finish) => {
     resolve = finish
   })
   return { promise, resolve }
+}
+
+export function catalogueResponse(names: string[], discovery = false) {
+  return Response.json({
+    count: names.length,
+    next: null,
+    previous: null,
+    results: (discovery ? names.slice(0, 1) : names).map((name, index) => ({
+      name,
+      url: `https://pokeapi.co/api/v2/pokemon/${index + 10001}/`,
+    })),
+  })
+}
+
+export function mockCatalogue(
+  names = ['bulbasaur', 'ivysaur'],
+  detail: (name: string, init?: RequestInit) => Promise<Response> = () =>
+    Promise.resolve(Response.json(detailsFixture())),
+) {
+  const fetchMock = vi.fn<typeof fetch>((input, init) => {
+    const url = new URL(String(input))
+    if (url.search)
+      return Promise.resolve(
+        catalogueResponse(names, url.searchParams.get('limit') === '1'),
+      )
+    const name = url.pathname.split('/').at(-1) ?? ''
+    return detail(name, init)
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
 }

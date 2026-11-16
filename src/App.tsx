@@ -1,18 +1,33 @@
+import { useSyncExternalStore } from 'react'
 import { Container, MantineProvider, Stack, Text, Title } from '@mantine/core'
 import { PokemonListing } from './components/PokemonListing'
+import { PokedexStartup } from './components/PokedexStartup'
+import { pokedexLoader } from './data/pokedex'
 import { config } from './config'
 import { theme } from './theme'
 
 export default function App() {
+  const state = useSyncExternalStore(
+    pokedexLoader.subscribe,
+    pokedexLoader.getSnapshot,
+  )
   return (
     <MantineProvider theme={theme} forceColorScheme="light">
       <Container component="main" py="xl">
         <Stack gap="xl">
           <div>
             <Title order={1}>Pokédex</Title>
-            <Text c="dimmed">Meet the first {config.listSize} Pokémon.</Text>
+            <Text c="dimmed">
+              {state.status === 'ready'
+                ? `${state.entries.length} Pokémon ready to explore. Showing the first ${Math.min(config.listSize, state.entries.length)}.`
+                : 'Your complete Pokémon collection.'}
+            </Text>
           </div>
-          <PokemonListing />
+          {state.status === 'ready' ? (
+            <PokemonListing entries={state.entries} />
+          ) : (
+            <PokedexStartup state={state} onRetry={pokedexLoader.retry} />
+          )}
         </Stack>
       </Container>
     </MantineProvider>

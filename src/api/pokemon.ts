@@ -1,15 +1,17 @@
 import { z } from 'zod'
 import { config } from '../config'
+import { requestJson } from './request'
 
 const pokemonListSchema = z.object({
-  results: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1),
-        url: z.url(),
-      }),
-    )
-    .max(config.listSize),
+  count: z.number().int().nonnegative(),
+  next: z.httpUrl().nullable(),
+  previous: z.httpUrl().nullable(),
+  results: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      url: z.httpUrl(),
+    }),
+  ),
 })
 
 export type PokemonListItem = z.infer<
@@ -48,9 +50,7 @@ export async function getPokemonDetails(name: string, signal: AbortSignal) {
   const cached = cachedDetails.get(name)
   if (cached) return cached
   const url = new URL(`pokemon/${encodeURIComponent(name)}`, config.apiBaseUrl)
-  const response = await fetch(url, { signal })
-  if (!response.ok) throw new Error('Unable to load Pokémon details.')
-  const data: unknown = await response.json()
+  const data = await requestJson(url, signal)
   const details = pokemonDetailsSchema.parse(data)
   signal.throwIfAborted()
   cachedDetails.set(name, details)
@@ -60,14 +60,41 @@ export async function getPokemonDetails(name: string, signal: AbortSignal) {
 export async function getPokemonList(signal: AbortSignal) {
   if (cachedList) return cachedList
   const url = new URL('pokemon', config.apiBaseUrl)
-  url.search = new URLSearchParams({
-    limit: String(config.listSize),
-    offset: '0',
-  }).toString()
-  const response = await fetch(url, { signal })
-  if (!response.ok) throw new Error('Unable to load Pokémon.')
-  const data: unknown = await response.json()
-  const { results } = pokemonListSchema.parse(data)
+  url.search = new URLSearchParams({ limit: '1', offset: '0' }).toString()
+  const discovery = pokemonListSchema.parse(await requestJson(url, signal))
+  const results: PokemonListItem[] = []
+  const visited = new Set<string>()
+  if (discovery.count > 0) {
+    const catalogueUrl = new URL(url)
+    catalogueUrl.searchParams.set('limit', String(discovery.count))
+    let next: URL | null = catalogueUrl
+    while (next) {
+      if (
+        visited.has(next.href) ||
+        next.origin !== url.origin ||
+        next.pathname.replace(/\/$/, '') !== url.pathname
+      ) {
+        throw new Error('Invalid catalogue pagination.')
+      }
+      visited.add(next.href)
+      const page = pokemonListSchema.parse(await requestJson(next, signal))
+      if (!page.results.length)
+        throw new Error('The catalogue is incomplete. Please retry.')
+      if (page.count !== discovery.count)
+        throw new Error('The catalogue changed. Please retry.')
+      results.push(...page.results)
+      if (results.length > discovery.count)
+        throw new Error('Invalid catalogue size.')
+      next = page.next ? new URL(page.next) : null
+    }
+  }
+  if (
+    results.length !== discovery.count ||
+    new Set(results.map((item) => item.name)).size !== results.length ||
+    new Set(results.map((item) => item.url)).size !== results.length
+  ) {
+    throw new Error('The catalogue is incomplete. Please retry.')
+  }
   signal.throwIfAborted()
   cachedList = results
   return results

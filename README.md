@@ -24,6 +24,19 @@ Dependencies are already installed in this copy. For a fresh checkout, install
 Node 22.22.2+ (Node 22 is recorded in .nvmrc), then run `npm ci`.
 The ignored `.tools/node` runtime is local convenience, not part of Git.
 
+## Startup concurrency
+
+The Pokédex loads up to 20 Pokémon detail requests concurrently by default. To
+override this, create `.env.local` in the project root:
+
+```dotenv
+VITE_POKEMON_CONCURRENCY=30
+```
+
+Use an integer from 1 to 100; missing or invalid values fall back to 20. Restart
+the dev server after changing the value. Production builds read it at build time.
+See `.env.example` for the default. `VITE_*` settings are public client data.
+
 ## Commands
 
 | Command             | Purpose                               |
