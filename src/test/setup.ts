@@ -16,7 +16,16 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
-beforeEach(() => localStorage.clear())
+Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+  configurable: true,
+  writable: true,
+  value: () => {},
+})
+
+beforeEach(() => {
+  localStorage.clear()
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+})
 
 afterEach(() => {
   cleanup()

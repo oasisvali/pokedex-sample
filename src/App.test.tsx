@@ -78,15 +78,25 @@ it('loads the full catalogue including entries beyond the ten shown on screen', 
   render(<App />)
   const list = await screen.findByRole('list', { name: 'Pokémon' })
   expect(within(list).getAllByRole('heading')).toHaveLength(10)
-  expect(
-    screen.getByText('12 Pokémon ready to explore. Showing the first 10.'),
-  ).toBeInTheDocument()
+  expect(screen.getByText('12 Pokémon ready to explore.')).toBeInTheDocument()
   expect(fetchMock).toHaveBeenCalledTimes(14)
   expect(
     fetchMock.mock.calls.some(([input]) =>
       String(input).endsWith('/pokemon-11'),
     ),
   ).toBe(true)
+  await userEvent
+    .setup()
+    .click(screen.getByRole('button', { name: 'Next page' }))
+  expect(
+    within(list)
+      .getAllByRole('heading')
+      .map((heading) => heading.textContent),
+  ).toEqual(['Pokemon-10', 'Pokemon-11'])
+  expect(screen.getByRole('status')).toHaveTextContent(
+    'Showing 11–12 of 12 Pokémon.',
+  )
+  expect(fetchMock).toHaveBeenCalledTimes(14)
 })
 
 it.each(['http', 'network', 'invalid'])(

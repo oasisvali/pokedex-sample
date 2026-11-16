@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button, Text } from '@mantine/core'
 
 export function PokemonCry({
@@ -10,6 +10,11 @@ export function PokemonCry({
 }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const audio = audioRef.current
+    return () => audio?.pause()
+  }, [src, failed])
 
   async function play() {
     const audio = audioRef.current

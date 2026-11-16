@@ -3,7 +3,6 @@ import { Container, MantineProvider, Stack, Text, Title } from '@mantine/core'
 import { PokemonListing } from './components/PokemonListing'
 import { PokedexStartup } from './components/PokedexStartup'
 import { pokedexLoader } from './data/pokedex'
-import { config } from './config'
 import { theme } from './theme'
 
 export default function App() {
@@ -19,7 +18,7 @@ export default function App() {
             <Title order={1}>Pokédex</Title>
             <Text c="dimmed">
               {state.status === 'ready'
-                ? `${state.entries.length} Pokémon ready to explore. Showing the first ${Math.min(config.listSize, state.entries.length)}.`
+                ? `${state.entries.length} Pokémon ready to explore.`
                 : 'Your complete Pokémon collection.'}
             </Text>
           </div>

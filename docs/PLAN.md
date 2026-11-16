@@ -16,7 +16,7 @@ per-card fetching and retry behavior with complete startup loading.
 
 ## Slice 3 — Complete startup loading
 
-Status: Implemented; automated checks passed. Awaiting user review and manual commit.
+Status: Accepted for continuation; startup committed in a9d565e, cleanup in 37a1f20.
 
 - Discover the API catalogue count with `pokemon?limit=1`; fetch the full catalogue
   and follow additional pages if needed. Preserve API order and all forms rather
@@ -43,12 +43,19 @@ announcements remain unverified. The source diff and whitespace checks passed.
 
 ## Slice 4 — Pagination
 
-Status: Planned; awaiting slice 3 review, acceptance and manual commit.
+Status: Implemented; automated checks passed. Awaiting user review and manual commit.
 
 - Add Mantine pagination for ten Pokémon per page, derived from dataset length.
 - Show current range and total, including a partial final page.
 - Navigate without API requests; return focus/scroll to the listing heading and
   unmount the previous cards so their audio stops.
+
+Verification: `npm run check` passed (29 tests, types, lint, formatting and production
+build). Tests cover keyboard navigation, page ranges and boundaries, all 136 pages
+for 1,351 entries, the partial final page, audio cleanup and no additional API
+requests when changing pages. Diff and whitespace checks passed. Browser access
+remained unavailable, so responsive layout and actual scrolling/audio remain
+unverified in a browser.
 
 ## Slice 5 — Type filter and exact-name search
 

@@ -7,7 +7,7 @@ export function PokemonCard({ name, details }: PokemonEntry) {
   return (
     <Card component="li" withBorder padding="lg">
       <Stack gap="md">
-        <Title order={2} size="h3" style={{ overflowWrap: 'anywhere' }}>
+        <Title order={3} size="h3" style={{ overflowWrap: 'anywhere' }}>
           {displayName}
         </Title>
         <PokemonDetails details={details} name={displayName} />
