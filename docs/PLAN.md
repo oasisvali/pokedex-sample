@@ -43,7 +43,7 @@ announcements remain unverified. The source diff and whitespace checks passed.
 
 ## Slice 4 — Pagination
 
-Status: Implemented; automated checks passed. Awaiting user review and manual commit.
+Status: Accepted for continuation; committed in 71e3095.
 
 - Add Mantine pagination for ten Pokémon per page, derived from dataset length.
 - Show current range and total, including a partial final page.
@@ -57,16 +57,22 @@ requests when changing pages. Diff and whitespace checks passed. Browser access
 remained unavailable, so responsive layout and actual scrolling/audio remain
 unverified in a browser.
 
-## Slice 5 — Type filter and exact-name search
+## Slice 5 — Type filter and name search
 
-Status: Planned; awaiting slice 4 review, acceptance and manual commit.
+Status: Implemented; automated checks passed. Awaiting user review and manual commit.
 
-- Add a labelled single-type selector, exact-name input and Clear filters button.
+- Add a labelled single-type selector, name input and Clear filters button.
 - Derive alphabetical type options from the complete dataset; default to All types.
-- Trim and lowercase search input; match the full API name including hyphens.
+- Trim and lowercase search input; match any part of the API name, including full names.
 - Combine type and name with AND, filter before pagination, update as input changes,
   reset to page 1 and announce result counts. Include a helpful empty state.
 - Test combined matching, case/whitespace, resets, empty results and pagination.
+
+Verification: `npm run check` passed (33 tests, types, lint, formatting and production
+build). Tests cover full-dataset type filtering, alphabetical options, full/partial names,
+case/whitespace and hyphens, combined filters, secondary types, empty-state recovery,
+page resets and no additional API requests. Diff and whitespace checks passed.
+Browser access remained unavailable; responsive layout remains unverified.
 
 ## Slice 6 — localStorage persistence
 

@@ -96,6 +96,25 @@ it('loads the full catalogue including entries beyond the ten shown on screen', 
   expect(screen.getByRole('status')).toHaveTextContent(
     'Showing 11–12 of 12 Pokémon.',
   )
+  const user = userEvent.setup()
+  await user.type(
+    screen.getByRole('textbox', { name: 'Pokémon name' }),
+    'pokemon-11',
+  )
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: 'Type' }),
+    'poison',
+  )
+  expect(
+    screen.getByRole('heading', { name: 'Pokemon-11' }),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    'Showing 1–1 of 1 Pokémon.',
+  )
+  await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+  expect(screen.getByRole('status')).toHaveTextContent(
+    'Showing 1–10 of 12 Pokémon.',
+  )
   expect(fetchMock).toHaveBeenCalledTimes(14)
 })
 
